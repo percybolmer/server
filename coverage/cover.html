@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">server/basicServer.go (96.4%)</option>
+				
+				<option value="file1">server/credentials.go (90.9%)</option>
+				
+				<option value="file2">server/serverContainer.go (88.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package server
+
+import (
+        "fmt"
+
+        "github.com/jinzhu/gorm"
+        _ "github.com/jinzhu/gorm/dialects/postgres"
+)
+
+// basicServer is a Example server to match the interface, this struct should be reWritten to match your system type
+type basicServer struct {
+        id          string
+        credentials *credentials
+        db          *gorm.DB
+}
+
+// NewBasicServer is a function used to initailze a new basicServer object, it will make sure
+// that all neccesarry fields are initialized to avoid nil pointer exceptions
+// id Should be Unique for each server
+func NewBasicServer(id string) *basicServer <span class="cov8" title="1">{
+        return &amp;basicServer{
+                id:          id,
+                credentials: NewCredentials(),
+        }
+}</span>
+
+// Connect will start a connection against the Server
+// Connect will be responsible to assign the needed values to the Server struct.
+// Etc, If you run a REST server, add a Http.Client or so to the Server struct and make sure to assign it in the Connect upon success
+// This BasicServer is a database server, so we will assign a gorm.DB object to basicserver.db
+func (b *basicServer) Connect(c *credentials) error <span class="cov8" title="1">{
+        /* This example is a Database Application, so we need to validate that DB in credentials is not nil */
+        if c.DB == nil &amp;&amp; b.credentials.DB == nil </span><span class="cov8" title="1">{
+                return ErrMissingCredentials
+        }</span> else<span class="cov8" title="1"> if c != nil </span><span class="cov8" title="1">{
+                /* Assign New Credentials to server */
+                b.credentials = c
+        }</span>
+        <span class="cov8" title="1">dbinfo := b.credentials.DB
+        psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbinfo.Host, dbinfo.Port, dbinfo.Username, dbinfo.Password, dbinfo.DatabaseName)
+        db, err := gorm.Open("postgres", psqlInfo)
+        db.LogMode(true)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrFailedToConnect
+
+        }</span>
+        /* Assign the database into the struct */
+        <span class="cov8" title="1">b.db = db
+        return nil</span>
+}
+
+// Reconnect is responsible to connect again, It can be a one call function that only calls Connect.
+// However, Making sure the old connection is disconnected can be a good thing to do
+func (b *basicServer) Reconnect() error <span class="cov8" title="1">{
+        err := b.Disconnect()
+        if err != nil &amp;&amp; err != ErrCannotCloseNilDatabase </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return b.Connect(b.credentials)</span>
+}
+
+// Disconnect is responble for closing the connection to the database
+// Can be a good idea to make sure the object is not nil first.
+func (b *basicServer) Disconnect() error <span class="cov8" title="1">{
+        if b.db == nil </span><span class="cov8" title="1">{
+                return ErrCannotCloseNilDatabase
+        }</span>
+        <span class="cov8" title="1">return b.db.Close()</span>
+}
+
+// TestConnection is a function to check that the Connection to the server is working properly
+// This can be handled or just reported
+// In this basicServer I have made the decission to call Reconnect and return THAT result if there is any failures
+// If Connection is working properly, then just return nil
+func (b *basicServer) TestConnection() error <span class="cov8" title="1">{
+        if b.db == nil </span><span class="cov8" title="1">{
+                return b.Reconnect()
+        }</span>
+        /* Ask Database if connection is OK */
+        <span class="cov8" title="1">err := b.db.DB().Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return b.Reconnect()
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Ping is used to just send a Ping to a DB, or a check response time on a HTTP Api etc,
+func (b *basicServer) Ping() error <span class="cov8" title="1">{
+        return b.db.DB().Ping()
+}</span>
+
+// GetUniqueIdentifer returns the ID of the server
+func (b *basicServer) GetUniqueIdentifier() string <span class="cov8" title="1">{
+        return b.id
+}</span>
+
+/** Add your own Functions down below */
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package server
+
+import (
+        b64 "encoding/base64"
+        "encoding/json"
+        "reflect"
+)
+
+// credentials is a container for different Credentials that can be used to connect to a Server
+// Add new Credential types here
+type credentials struct {
+        BasicAuth *basicAuthorization `json:"basicauth"`
+        Ssh       *ssh                `json:"ssh"`
+        DB        *db                 `json:"db"`
+}
+
+type Validator interface {
+        validate() error
+}
+
+// NewCredentials is used to create a new credentials object, and return a pointer to it
+// @See LoadNewCredentials if you want to Load and Create Credentials at the same time
+func NewCredentials() *credentials <span class="cov8" title="1">{
+        return &amp;credentials{}
+}</span>
+
+// LoadNewCredentials will return a new Pointer to credentials but Also load them with data
+func LoadNewCredentials(data []byte) (*credentials, error) <span class="cov8" title="1">{
+        c := &amp;credentials{}
+        return c, c.loadCredentials(data)
+}</span>
+
+// loadCredentials takes a byte array containing JSON data and Unmarshalls it
+// will return err if unmarshal fails, will also return error on validation failures
+func (c *credentials) loadCredentials(data []byte) error <span class="cov8" title="1">{
+        if err := json.Unmarshal(data, c); err != nil </span><span class="cov8" title="1">{
+                /* Replace this when xerrors is part of std lib and instead Wrap the unmarshal error with our custom Unmarshal err */
+                return ErrFailedToUnmarshalCredentials
+        }</span>
+        /* Validate all non Nil credentials */
+        <span class="cov8" title="1">v := reflect.ValueOf(c)
+        /* c is a pointer so we need to indirect it */
+        nopointer := reflect.Indirect(v)
+        for i := 0; i &lt; nopointer.NumField(); i++ </span><span class="cov8" title="1">{
+                // See if field is nil
+                if !nopointer.Field(i).IsNil() </span><span class="cov8" title="1">{
+                        /* Only validate if its part of the validator interface */
+                        interfacetype := nopointer.Field(i).Interface()
+
+                        originalField, ok := interfacetype.(Validator)
+                        if ok </span><span class="cov8" title="1">{
+                                err := originalField.validate()
+                                if err != nil </span><span class="cov8" title="1">{
+                                        return err
+                                }</span>
+                        }
+
+                }
+        }
+        <span class="cov8" title="1">return nil</span>
+
+}
+
+// basicAuthorization is a struct containing all neccessary data and functions to handle basic Auth
+type basicAuthorization struct {
+        Username string `json:"username"`
+        Password string `json:"password"`
+        // Base64 is the base64 encoded version of the Username + Password
+        Base64 string `json:"base64"`
+}
+
+// validate is used to enable Validator interface
+func (b *basicAuthorization) validate() error <span class="cov8" title="1">{
+        if (b.Username == "" || b.Password == "") &amp;&amp; b.Base64 == "" </span><span class="cov8" title="1">{
+                return ErrNeedUserAndPassword
+        }</span> else<span class="cov8" title="1"> if b.Base64 == "" </span><span class="cov8" title="1">{
+                /* Encode the b64 string if its not set in the Config */
+                b.Base64 = b64.StdEncoding.EncodeToString([]byte(b.Username + ":" + b.Password))
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// ssh contains neccessary data and methods to handle all SSH connection
+type ssh struct {
+        Publickey string `json:"publickey"`
+}
+
+// validate is used to enable validator interface
+func (s *ssh) validate() error <span class="cov0" title="0">{
+        if s.Publickey == "" </span><span class="cov0" title="0">{
+                return ErrSshInvalidKey
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+type db struct {
+        Host         string `json:"host"`
+        Port         int    `json:"port"`
+        Username     string `json:"username"`
+        Password     string `json:"password"`
+        DatabaseName string `json:"databasename"`
+}
+
+// validate makes db part of the Validator interface
+func (d *db) validate() error <span class="cov8" title="1">{
+        if d.Host == "" </span><span class="cov8" title="1">{
+                return ErrInvalidHost
+        }</span> else<span class="cov8" title="1"> if d.Username == "" || d.Password == "" </span><span class="cov8" title="1">{
+                return ErrNeedUserAndPassword
+        }</span> else<span class="cov8" title="1"> if d.DatabaseName == "" </span><span class="cov8" title="1">{
+                return ErrInvalidDatabaseName
+        }</span> else<span class="cov8" title="1"> if d.Port == 0 </span><span class="cov8" title="1">{
+                return ErrInvalidDatabasePort
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package server
+
+import (
+        "time"
+)
+
+type serverContainer struct {
+        servers          map[string]Server
+        Err              chan (error)
+        connectionTicker *time.Ticker
+}
+
+var defaultInterval = time.Duration(time.Second * 60)
+
+// NewServerContainer will return a Correctly initialized serverContainer struct
+func NewServerContainer() *serverContainer <span class="cov8" title="1">{
+        return &amp;serverContainer{
+                servers: make(map[string]Server, 0),
+                Err:     make(chan error),
+        }
+}</span>
+
+// Add will take any Struct implementing the Server interface and add it among its servers
+// Name is used for Map Lookup
+func (sc *serverContainer) Add(s Server) error <span class="cov8" title="1">{
+        /* Make sure we dont Overwrite any old server */
+        if _, ok := sc.servers[s.GetUniqueIdentifier()]; ok </span><span class="cov8" title="1">{
+                return ErrDupliaceServerName
+        }</span>
+        <span class="cov8" title="1">sc.servers[s.GetUniqueIdentifier()] = s
+        return nil</span>
+}
+
+// Overwrite will add a Server at the UniqueIdentifier location even if there is already a Server
+func (sc *serverContainer) Overwrite(s Server) <span class="cov0" title="0">{
+        sc.servers[s.GetUniqueIdentifier()] = s
+}</span>
+
+// Remove will delete the server from the ServerContainer
+func (sc *serverContainer) Remove(s Server) <span class="cov8" title="1">{
+        delete(sc.servers, s.GetUniqueIdentifier())
+}</span>
+
+// SetConnectionInterval will change the duration between connection Checks on the servers
+func (sc *serverContainer) SetConnectionInterval(sec int) <span class="cov8" title="1">{
+        sc.connectionTicker = time.NewTicker(time.Duration(int64(sec)) * time.Second)
+}</span>
+
+// StopManagingConnections will end the ManageConnections goroutine from running
+func (sc *serverContainer) StopManagingConnections() <span class="cov8" title="1">{
+        sc.connectionTicker.Stop()
+}</span>
+
+// ManageConnections will itterate all current serveres and Check their connection state
+// If they are unavailable it will try to Reconnect
+// All errors will be sent to sc.Err
+func (sc *serverContainer) ManageConnections() <span class="cov8" title="1">{
+        go func() </span><span class="cov8" title="1">{
+                if sc.connectionTicker == nil </span><span class="cov0" title="0">{
+                        /* Create a Default Intervalled Ticker */
+                        sc.connectionTicker = time.NewTicker(time.Duration(int64(defaultInterval)) * time.Second)
+                }</span>
+                <span class="cov8" title="1">for </span><span class="cov8" title="1">{
+                        select </span>{
+                        case &lt;-sc.connectionTicker.C:<span class="cov8" title="1">
+                                for _, s := range sc.servers </span><span class="cov8" title="1">{
+                                        go sc.manageConnection(s)
+                                }</span>
+                        }
+                }
+        }()
+}
+
+// manageConnection will test the connection of a given Server
+// Error will be reported on the Err Channel
+func (sc *serverContainer) manageConnection(s Server) <span class="cov8" title="1">{
+        sc.Err &lt;- s.TestConnection()
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
