@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+func getWorkingBasicServer() Server {
+	return nil
+}
 func TestAdd(t *testing.T) {
 	/* Test if Duplicates are handled correctly */
 	sc := NewServerContainer()

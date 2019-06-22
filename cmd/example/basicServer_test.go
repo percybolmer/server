@@ -2,6 +2,7 @@
 package example
 
 import (
+	"credentials"
 	"server"
 	"testing"
 )
@@ -47,7 +48,7 @@ func TestInterfaceImplementation(t *testing.T) {
 
 func getWorkingbasicServer() *basicServer {
 	b := NewbasicServer("t")
-	cred, err := server.LoadNewCredentials(workingDB)
+	cred, err := credentials.LoadNewCredentials(workingDB)
 	if err != nil {
 		panic(err)
 	}
@@ -79,7 +80,7 @@ func TestConnect(t *testing.T) {
 	/* Also try speicla case where NIL credentials shuold fail */
 	b.credentials.DB = nil
 	err := b.Connect(b.credentials)
-	if err != server.ErrMissingCredentials {
-		t.Error("Expected: ", server.ErrMissingCredentials, " But got:", err)
+	if err != credentials.ErrMissingCredentials {
+		t.Error("Expected: ", credentials.ErrMissingCredentials, " But got:", err)
 	}
 }

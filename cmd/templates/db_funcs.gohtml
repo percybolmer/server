@@ -1,7 +1,7 @@
 {{ define "dbConnect"}}
     /* This example is a Database Application, so we need to validate that DB in Credentials is not nil */
 	if c.DB == nil && s.credentials.DB == nil {
-		return server.ErrMissingCredentials
+		return credentials.ErrMissingCredentials
 	} else if c != nil {
 		/* Assign New Credentials to server */
 		s.credentials = c

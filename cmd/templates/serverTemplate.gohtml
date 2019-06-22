@@ -4,13 +4,14 @@ package {{.PackageName}}
 import (
 	"server"
 	"fmt"
+	"credentials"
 	{{ if .Db }} "github.com/jinzhu/gorm" {{end}}
 )
 
 // {{.ServerName}} is a generated Server, Please comment --- 
 type {{.ServerName}} struct {
 	id          string
-	credentials *server.Credentials
+	credentials *credentials.Credentials
 	{{ if .Db }} db          *gorm.DB {{end}}
 }
 
@@ -20,11 +21,11 @@ type {{.ServerName}} struct {
 func New{{.ServerName}}(id string) *{{.ServerName}} {
 	return &{{.ServerName}}{
 		id:          id,
-		credentials: server.NewCredentials(),
+		credentials: credentials.NewCredentials(),
 	}
 }
 // Connect should handle a connection to the server
-func (s *{{.ServerName}}) Connect(c *server.Credentials) error{
+func (s *{{.ServerName}}) Connect(c *credentials.Credentials) error{
     {{ if .Db}} {{template "dbConnect"}} {{end}}
 }
 // Reconnect should disconnect then reconnect 

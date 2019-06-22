@@ -2,15 +2,17 @@
 package example
 
 import (
+	"credentials"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"server"
+
+	"github.com/jinzhu/gorm"
 )
 
 // basicServer is a generated Server, Please comment ---
 type basicServer struct {
 	id          string
-	credentials *server.Credentials
+	credentials *credentials.Credentials
 	db          *gorm.DB
 }
 
@@ -20,16 +22,16 @@ type basicServer struct {
 func NewbasicServer(id string) *basicServer {
 	return &basicServer{
 		id:          id,
-		credentials: server.NewCredentials(),
+		credentials: credentials.NewCredentials(),
 	}
 }
 
 // Connect should handle a connection to the server
-func (s *basicServer) Connect(c *server.Credentials) error {
+func (s *basicServer) Connect(c *credentials.Credentials) error {
 
 	/* This example is a Database Application, so we need to validate that DB in Credentials is not nil */
 	if c.DB == nil && s.credentials.DB == nil {
-		return server.ErrMissingCredentials
+		return credentials.ErrMissingCredentials
 	} else if c != nil {
 		/* Assign New Credentials to server */
 		s.credentials = c
