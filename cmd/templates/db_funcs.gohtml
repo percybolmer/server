@@ -1,0 +1,48 @@
+{{ define "dbConnect"}}
+    /* This example is a Database Application, so we need to validate that DB in Credentials is not nil */
+	if c.DB == nil && s.credentials.DB == nil {
+		return server.ErrMissingCredentials
+	} else if c != nil {
+		/* Assign New Credentials to server */
+		s.credentials = c
+	}
+	dbcred := s.credentials.DB
+	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbcred.Host, dbcred.Port, dbcred.Username, dbcred.Password, dbcred.DatabaseName)
+	db, err := gorm.Open("postgres", dbInfo)
+	db.LogMode(true)
+	if err != nil {
+		return server.ErrFailedToConnect
+
+	}
+	/* Assign the database into the struct */
+	s.db = db
+	return nil
+
+{{end}}
+{{define "dbReconnect"}}
+	err := s.Disconnect()
+	if err != nil && err != server.ErrCannotCloseNilDatabase {
+		return err
+	}
+	return s.Connect(s.credentials)
+{{end}}
+{{define "dbDisconnect"}}
+	if s.db == nil {
+		return server.ErrCannotCloseNilDatabase
+	}
+	return s.db.Close()
+{{end}}
+{{define "dbTestConnection"}}
+	if s.db == nil {
+		return s.Reconnect()
+	}
+	/* Ask Database if connection is OK */
+	err := s.db.DB().Ping()
+	if err != nil {
+		return s.Reconnect()
+	}
+	return nil
+{{end}}
+{{ define "dbPing"}}
+return s.db.DB().Ping()
+{{end}}

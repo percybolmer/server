@@ -1,0 +1,42 @@
+{{ define "getWorkingTestDB" }}
+func getWorking{{.ServerName}}() *{{.ServerName}} {
+		b := New{{.ServerName}}("t")
+		cred, err := server.LoadNewCredentials(workingDB)
+		if err != nil {
+			panic(err)
+		}
+		b.credentials = cred
+		return b
+}
+{{end}}
+
+{{ define "TestConnectionDB"}}
+func TestConnect(t *testing.T) {
+	b := getWorking{{.ServerName}}()
+	
+	type connectionTests struct {
+		ip  string
+		err error
+		n   string
+	}
+	
+	cases := []connectionTests{
+		{ip: "", err: server.ErrFailedToConnect, n: "Should fail to connect with a Bad IP"},
+		{ip: "", err: nil, n: "Should Work"},
+	}
+	
+	for _, tc := range cases {
+		b.credentials.DB.Host = tc.ip
+		err := b.Connect(b.credentials)
+		if err != tc.err {
+			t.Errorf("Expected: %s  but got: %s", tc.err, err)
+		}
+	}
+	/* Also try speicla case where NIL credentials shuold fail */
+	b.credentials.DB = nil
+	err := b.Connect(b.credentials)
+	if err != server.ErrMissingCredentials {
+		t.Error("Expected: ", server.ErrMissingCredentials, " But got:", err)
+	}	
+}
+{{end}}
