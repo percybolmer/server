@@ -1,1 +1,1 @@
-module server
+module github.com/percybolmer/server
