@@ -2,9 +2,10 @@
 package example
 
 import (
-	"credentials"
-	"server"
 	"testing"
+
+	"github.com/percybolmer/credentials"
+	"github.com/percybolmer/server"
 )
 
 var (

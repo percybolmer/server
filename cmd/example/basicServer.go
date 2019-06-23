@@ -2,11 +2,11 @@
 package example
 
 import (
-	"credentials"
 	"fmt"
-	"server"
 
 	"github.com/jinzhu/gorm"
+	"github.com/percybolmer/credentials"
+	"github.com/percybolmer/server"
 )
 
 // basicServer is a generated Server, Please comment ---

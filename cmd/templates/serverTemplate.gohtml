@@ -2,9 +2,9 @@
 package {{.PackageName}}
 
 import (
-	"server"
+	"github.com/percybolmer/server"
 	"fmt"
-	"credentials"
+	"github.com/percybolmer/credentials"
 	{{ if .Db }} "github.com/jinzhu/gorm" {{end}}
 )
 

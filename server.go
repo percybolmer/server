@@ -2,7 +2,7 @@
 package server
 
 import (
-	"credentials"
+	"github.com/percybolmer/credentials"
 )
 
 // Server is the interface used to handle Servers
