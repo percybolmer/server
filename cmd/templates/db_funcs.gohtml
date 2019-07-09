@@ -8,8 +8,10 @@
 	}
 	dbcred := s.credentials.DB
 	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbcred.Host, dbcred.Port, dbcred.Username, dbcred.Password, dbcred.DatabaseName)
-	db, err := gorm.Open("postgres", dbInfo)
-	db.LogMode(true)
+	{{ if .Gorm}}db, err := gorm.Open("{{.DbDriver}}", dbInfo)
+	{{else}} db, err := sql.Open("{{.DbDriver}}", fmt.Sprintf("%s:%s@tcp(%s:%d/%d)", dbcred.Username, dbcred.Password, dbcred.Host, dbcred.Port, dbcred.DatabaseName))
+	{{end}}
+	
 	if err != nil {
 		return server.ErrFailedToConnect
 

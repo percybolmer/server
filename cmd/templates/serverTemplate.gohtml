@@ -5,14 +5,15 @@ import (
 	"github.com/percybolmer/server"
 	"fmt"
 	"github.com/percybolmer/credentials"
-	{{ if .Db }} "github.com/jinzhu/gorm" {{end}}
+	{{ if .Gorm }} "github.com/jinzhu/gorm" {{end}}
+	{{ if (eq .DbDriver "postgres")}} _"github.com/jinzhu/gorm/dialects/postgres" {{else if (eq .DbDriver "mysql")}} _ "github.com/go-sql-driver/mysql" {{end}}
 )
 
 // {{.ServerName}} is a generated Server, Please comment --- 
 type {{.ServerName}} struct {
 	id          string
 	credentials *credentials.Credentials
-	{{ if .Db }} db          *gorm.DB {{end}}
+	{{ if .Gorm }} db          *gorm.DB {{else if .Db}} db *sql.DB{{end}}
 }
 
 // New{{.ServerName}} is a function used to initailze a new {{.ServerName}} object, it will make sure
@@ -26,7 +27,7 @@ func New{{.ServerName}}(id string) *{{.ServerName}} {
 }
 // Connect should handle a connection to the server
 func (s *{{.ServerName}}) Connect(c *credentials.Credentials) error{
-    {{ if .Db}} {{template "dbConnect"}} {{end}}
+    {{ if .Db}} {{template "dbConnect" .}} {{end}}
 }
 // Reconnect should disconnect then reconnect 
 func (s *{{.ServerName}}) Reconnect() error{

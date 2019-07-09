@@ -14,6 +14,8 @@ type newServer struct {
 	ServerName  string
 	Location    string
 	Db          bool
+	DbDriver    string
+	Gorm        bool
 }
 
 func main() {
@@ -22,13 +24,19 @@ func main() {
 	flag.StringVar(&d.PackageName, "package", "", "The name for the generated package")
 	flag.StringVar(&d.ServerName, "server", "", "The name of the server object to generate")
 	flag.BoolVar(&d.Db, "db", false, "Set true if its a database server")
+	flag.BoolVar(&d.Gorm, "gorm", false, "Set true if the server should use gorm as db handler")
 	flag.StringVar(&d.Location, "location", "", "Location of the generated output file/Files")
+	flag.StringVar(&d.DbDriver, "driver", "postgres", "The database driver to use, defaults to postgres")
 	flag.Parse()
 
 	finfo := getFileStat(d.Location)
 	if !finfo.IsDir() {
 		log.Fatal("Please specify a directory to generate files in, not a file")
 		return
+	}
+	// If Gorm is set, then DB is not needed to be set
+	if d.Gorm {
+		d.Db = true
 	}
 
 	f, err := os.Create(fmt.Sprintf("%s/%s.go", d.Location, d.ServerName))

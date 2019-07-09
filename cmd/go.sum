@@ -58,6 +58,8 @@ github.com/percybolmer/credentials v0.0.0-20190623060005-2fc80fa857ff h1:t7ep0Cm
 github.com/percybolmer/credentials v0.0.0-20190623060005-2fc80fa857ff/go.mod h1:hzvgOdcbwEeMjV91ARpQBtnsVu28AdFHFB1Ggp/vqKI=
 github.com/percybolmer/server v0.0.0-20190623060113-0b6605416574 h1:zJYhtYqPhZZ1H8oM7i3lX0JpF7sJTag37kgH++sePpg=
 github.com/percybolmer/server v0.0.0-20190623060113-0b6605416574/go.mod h1:PKZc2rHs+4aTqtM28UI+BosAKfm0rSIsxnu6Kg55euU=
+github.com/percybolmer/server v0.0.0-20190623060655-13bf15246791 h1:Jt0IkLX4faxspK5YjmiM4KOKWbau4/b4Q51YiRBrliA=
+github.com/percybolmer/server v0.0.0-20190623060655-13bf15246791/go.mod h1:7n9Y/0xKut9jn7Yn9jg12hvxv9sq3JSryOvZ/lBBlnc=
 github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
