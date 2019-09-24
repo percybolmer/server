@@ -1,18 +1,50 @@
 package server
 
 import (
+	"errors"
 	"testing"
 	"time"
+
+	"github.com/percybolmer/credentials"
 )
 
-func getWorkingBasicServer() Server {
+func getWorkingBasicServer(id string) basicserver {
+	return basicserver{
+		id: id,
+	}
+}
+
+// basicserver is just a make up struct used to test server functionality
+type basicserver struct {
+	id string
+}
+
+var pingCounter int
+
+func (b basicserver) Connect(c *credentials.Credentials) error {
 	return nil
 }
+func (b basicserver) Reconnect() error {
+	return nil
+}
+func (b basicserver) Disconnect() error     { return nil }
+func (b basicserver) TestConnection() error { return nil }
+func (b basicserver) Ping() error {
+	if pingCounter == 1 {
+		return errors.New("Should return an error")
+	}
+	pingCounter++
+	return nil
+}
+
+// GetUniqueIdentifier is responsible to return a Unique identifer for each Server object
+func (b basicserver) GetUniqueIdentifier() string { return b.id }
+
 func TestAdd(t *testing.T) {
 	/* Test if Duplicates are handled correctly */
 	sc := NewServerContainer()
 
-	bs := getWorkingBasicServer()
+	bs := getWorkingBasicServer("test")
 
 	/* Try Adding BS twice to the ServerContainer, second tiem should fail */
 	err := sc.Add(bs)
@@ -30,7 +62,7 @@ func TestRemove(t *testing.T) {
 	/* Test if Duplicates are handled correctly */
 	sc := NewServerContainer()
 
-	bs := getWorkingBasicServer()
+	bs := getWorkingBasicServer("test")
 
 	/* Try Adding BS twice to the ServerContainer, second tiem should fail */
 	err := sc.Add(bs)
@@ -49,9 +81,8 @@ func TestManageConnections(t *testing.T) {
 
 	sc := NewServerContainer()
 
-	bs := getWorkingBasicServer()
-	bs2 := getWorkingBasicServer()
-	bs2.id = "t2"
+	bs := getWorkingBasicServer("test")
+	bs2 := getWorkingBasicServer("t2")
 	testErr(sc.Add(bs), t)
 	testErr(sc.Add(bs2), t)
 
@@ -61,6 +92,7 @@ func TestManageConnections(t *testing.T) {
 	sc.SetConnectionInterval(5)
 	sc.ManageConnections()
 	/* This Go func will Wait a few Seconds and then Disconnect the Server */
+	pingCounter = 0
 	go func() {
 		time.Sleep(7 * time.Second)
 		sc.Err <- sc.servers["t2"].Disconnect()
