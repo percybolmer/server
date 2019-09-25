@@ -43,15 +43,23 @@ func main() {
 	checkError(err)
 	testf, err := os.Create(fmt.Sprintf("%s/%s_test.go", d.Location, d.ServerName))
 	checkError(err)
+	dockerf, err := os.Create(fmt.Sprintf("%s/%s", d.Location, "Dockerfile"))
+	checkError(err)
 
 	temps, err := template.ParseFiles("templates/serverTemplate.gohtml", "templates/db_funcs.gohtml")
 	checkError(err)
 
 	tests, err := template.ParseFiles("templates/tests/testTemplate.gohtml", "templates/tests/db_tests.gohtml")
 	checkError(err)
+
+	dock, err := template.ParseFiles("templates/docker.gohtml")
+	checkError(err)
+
 	err = temps.Execute(f, d)
 	checkError(err)
 	err = tests.Execute(testf, d)
+	checkError(err)
+	err = dock.Execute(dockerf, d)
 	checkError(err)
 
 	cmd := exec.Command("gofmt", "-w", d.Location)

@@ -1,0 +1,24 @@
+FROM golang:1.3
+
+LABEL MAINTAINER=""
+
+ARG APP_NAME={{.PackageName}}
+ARG LOG_DIR=/{{.PackageName}}/app.log
+
+RUN mkdir -p ${LOG_DIR}
+
+ENV LOG_FILE_LOCATION=${LOG_DIR}/app.log
+
+COPY . .
+
+RUN go get -d -v ./...
+RUN go install -v ./...
+
+RUN apt-get update && apt-get install
+
+
+WORKDIR $GOPATH/src/{{.PackageName}}
+
+EXPOSE 8080
+
+CMD ["{{.PackageName}}"]
