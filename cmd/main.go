@@ -16,6 +16,7 @@ type newServer struct {
 	Db          bool
 	DbDriver    string
 	Gorm        bool
+	Docker		bool
 }
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 	flag.StringVar(&d.ServerName, "server", "", "The name of the server object to generate")
 	flag.BoolVar(&d.Db, "db", false, "Set true if its a database server")
 	flag.BoolVar(&d.Gorm, "gorm", false, "Set true if the server should use gorm as db handler")
+	flag.BoolVar(&d.Docker, "docker", true, "Generate a dockerfile for the server, defaults to true")
 	flag.StringVar(&d.Location, "location", "", "Location of the generated output file/Files")
 	flag.StringVar(&d.DbDriver, "driver", "postgres", "The database driver to use, defaults to postgres")
 	flag.Parse()
@@ -43,8 +45,7 @@ func main() {
 	checkError(err)
 	testf, err := os.Create(fmt.Sprintf("%s/%s_test.go", d.Location, d.ServerName))
 	checkError(err)
-	dockerf, err := os.Create(fmt.Sprintf("%s/%s", d.Location, "Dockerfile"))
-	checkError(err)
+
 
 	temps, err := template.ParseFiles("templates/serverTemplate.gohtml", "templates/db_funcs.gohtml")
 	checkError(err)
@@ -52,15 +53,20 @@ func main() {
 	tests, err := template.ParseFiles("templates/tests/testTemplate.gohtml", "templates/tests/db_tests.gohtml")
 	checkError(err)
 
-	dock, err := template.ParseFiles("templates/docker.gohtml")
-	checkError(err)
 
 	err = temps.Execute(f, d)
 	checkError(err)
 	err = tests.Execute(testf, d)
 	checkError(err)
-	err = dock.Execute(dockerf, d)
-	checkError(err)
+
+	if d.Docker{
+		dockerf, err := os.Create(fmt.Sprintf("%s/%s", d.Location, "Dockerfile"))
+		checkError(err)
+		dock, err := template.ParseFiles("templates/docker.gohtml")
+		checkError(err)
+		err = dock.Execute(dockerf, d)
+		checkError(err)
+	}
 
 	cmd := exec.Command("gofmt", "-w", d.Location)
 	err = cmd.Run()
