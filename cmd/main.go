@@ -16,7 +16,8 @@ type newServer struct {
 	Db          bool
 	DbDriver    string
 	Gorm        bool
-	Docker		bool
+	Docker      bool
+	RestAPI     bool
 }
 
 func main() {
@@ -29,8 +30,13 @@ func main() {
 	flag.BoolVar(&d.Docker, "docker", true, "Generate a dockerfile for the server, defaults to true")
 	flag.StringVar(&d.Location, "location", "", "Location of the generated output file/Files")
 	flag.StringVar(&d.DbDriver, "driver", "postgres", "The database driver to use, defaults to postgres")
+	flag.BoolVar(&d.RestAPI, "rest_api", false, "Set to true to generate a RestApi")
 	flag.Parse()
 
+	if d.Location == "" || d.PackageName == "" || d.ServerName == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
 	finfo := getFileStat(d.Location)
 	if !finfo.IsDir() {
 		log.Fatal("Please specify a directory to generate files in, not a file")
@@ -46,20 +52,18 @@ func main() {
 	testf, err := os.Create(fmt.Sprintf("%s/%s_test.go", d.Location, d.ServerName))
 	checkError(err)
 
-
 	temps, err := template.ParseFiles("templates/serverTemplate.gohtml", "templates/db_funcs.gohtml")
 	checkError(err)
 
 	tests, err := template.ParseFiles("templates/tests/testTemplate.gohtml", "templates/tests/db_tests.gohtml")
 	checkError(err)
 
-
 	err = temps.Execute(f, d)
 	checkError(err)
 	err = tests.Execute(testf, d)
 	checkError(err)
 
-	if d.Docker{
+	if d.Docker {
 		dockerf, err := os.Create(fmt.Sprintf("%s/%s", d.Location, "Dockerfile"))
 		checkError(err)
 		dock, err := template.ParseFiles("templates/docker.gohtml")

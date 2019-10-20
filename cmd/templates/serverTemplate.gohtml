@@ -2,11 +2,12 @@
 package {{.PackageName}}
 
 import (
-	"github.com/percybolmer/server"
 	"fmt"
 	"github.com/percybolmer/credentials"
 	{{ if .Gorm }} "github.com/jinzhu/gorm" {{end}}
 	{{ if (eq .DbDriver "postgres")}} _"github.com/jinzhu/gorm/dialects/postgres" {{else if (eq .DbDriver "mysql")}} _ "github.com/go-sql-driver/mysql" {{end}}
+	{{ if .RestAPI}} "net/http"
+	"github.com/gorilla/mux"	{{end}}
 )
 
 // {{.ServerName}} is a generated Server, Please comment --- 
@@ -16,8 +17,40 @@ type {{.ServerName}} struct {
 	{{ if .Gorm }} db          *gorm.DB {{else if .Db}} db *sql.DB{{end}}
 }
 
-// New{{.ServerName}} is a function used to initailze a new {{.ServerName}} object, it will make sure
-// that all neccesarry fields are initialized to avoid nil pointer exceptions
+{{ if .RestAPI }}
+type Api struct {
+	// server is an optional thing for the API to hold, if the Api needs to access the server functions, make sure to assign the server as a value here to the Api.
+	server *{{.ServerName}}
+}
+// Start will run an API on port 8080
+func (a *Api) Start() error {
+	router := mux.NewRouter()
+
+	//endpoints, add ur own functions to this
+	router.HandleFunc("/version", a.printVersion).Methods("/GET")
+
+	return http.ListenAndServe(":8080", router)
+}
+// printVersion is used to print version of the current api used
+func (a *Api) printVersion(w http.ResponseWriter, r *http.Request){
+	fmt.Fprintf(w, "Version: %d", 1)
+}
+
+func main() {
+	// Read in ur credentials here before connecting if the API should have a server connection
+	//s := New{{.ServerName}}("serverid")
+	//err := s.Connect(nil)
+
+	a := &Api{}
+	// a.server = s
+
+	a.Start()
+
+}
+{{end}}
+
+// New{{.ServerName}} is a function used to initialize a new {{.ServerName}} object, it will make sure
+// that all necessary fields are initialized to avoid nil pointer exceptions
 // id Should be Unique for each server
 func New{{.ServerName}}(id string) *{{.ServerName}} {
 	return &{{.ServerName}}{
@@ -49,5 +82,7 @@ func (s *{{.ServerName}}) Ping() error{
 func (s *{{.ServerName}}) GetUniqueIdentifier() string{
 	return s.id
 }
+
+
 
 /** Add your own Functions down below */
