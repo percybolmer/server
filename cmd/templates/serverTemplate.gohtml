@@ -28,12 +28,19 @@ func (a *Api) Start() error {
 
 	//endpoints, add ur own functions to this
 	router.HandleFunc("/version", a.printVersion).Methods("/GET")
-
+	a.Use(loggingMiddleware)
 	return http.ListenAndServe(":8080", router)
 }
 // printVersion is used to print version of the current api used
 func (a *Api) printVersion(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintf(w, "Version: %d", 1)
+}
+// loggingMiddleware is a middleware used to log any requests made to the API
+func loggingMiddleware(next http.Handler) http.Handler{
+return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	log.Printf("%+v", r)
+next.ServeHTTP(w,r)
+})
 }
 
 func main() {
